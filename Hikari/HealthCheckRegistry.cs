@@ -53,6 +53,8 @@ namespace Hikari
 
         /// <summary>
         /// 添加异常
+        /// 
+        /// Add exception
         /// </summary>
         /// <param name="name"></param>
         /// <param name="pool"></param>
@@ -82,7 +84,8 @@ namespace Hikari
                             kv.Value.Tick = DateTime.Now.Ticks;
                             if (kv.Value.Count > 10)
                             {
-                                Logger.Singleton.WarnFormat("连接池异常，连接池名称：{0},连接池配置：{1}", kv.Key, kv.Value.Pool.ConnectStr);
+                                //Logger.Singleton.WarnFormat("连接池异常，连接池名称：{0},连接池配置：{1}", kv.Key, kv.Value.Pool.ConnectStr);
+                                Logger.Singleton.WarnFormat("The connection pool is abnormal, Connection Pool Name：{0},Connection pool configuration：{1}", kv.Key, kv.Value.Pool.ConnectStr);
                             }
                         }
                         else
@@ -113,6 +116,8 @@ namespace Hikari
 
     /// <summary>
     /// 连接池存储项
+    /// 
+    /// Connection pool storage item
     /// </summary>
     public class HealthItem
     {
@@ -123,6 +128,8 @@ namespace Hikari
 
         /// <summary>
         /// 5秒内没有延迟
+        /// 
+        /// There is no delay within 5 seconds
         /// </summary>
         public bool IsSucess { get
             {

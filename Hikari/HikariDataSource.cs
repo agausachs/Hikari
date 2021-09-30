@@ -22,29 +22,39 @@ namespace Hikari
     /// </summary>
     public class HikariDataSource:HikariConfig,IDisposable
     {
-       
+
         /// <summary>
         /// 连接池，初始化时使用，用于锁定
+        /// 
+        /// Connection pool, used during initialization, for locking
         /// </summary>
         private HikariPool pool = null;
 
         /// <summary>
         /// 是否关闭
+        /// 
+        /// Is it closed?
         /// </summary>
         private volatile  bool isShutdown = false;
 
         /// <summary>
         /// 连接池,常用对象
+        /// 
+        /// Connection pool, commonly used objects
         /// </summary>
-        private  HikariPool fastPathPool;
+        private HikariPool fastPathPool;
 
         /// <summary>
         /// 是否初始化
+        /// 
+        /// Is it initialized?
         /// </summary>
         private volatile bool isInit = true;//需要加载
 
         /// <summary>
         /// 状态
+        /// 
+        /// state
         /// </summary>
         public bool IsClosed
         {
@@ -55,6 +65,8 @@ namespace Hikari
 
         /// <summary>
         /// 连接提供DataSource
+        /// 
+        /// Connect to provide DataSource
         /// </summary>
         /// <param name="configuration"></param>
         public HikariDataSource(HikariConfig configuration)
@@ -68,6 +80,8 @@ namespace Hikari
 
         /// <summary>
         /// 连接提供DataSource
+        /// 
+        /// Connect to provide DataSource
         /// </summary>
         public HikariDataSource():base()
         {
@@ -85,6 +99,8 @@ namespace Hikari
 
         /// <summary>
         /// 获取连接对象
+        /// 
+        /// Get the connection object
         /// </summary>
         /// <returns></returns>
         public IDbConnection GetConnection()
@@ -96,12 +112,14 @@ namespace Hikari
             if(isInit)
             {
                 //全局配置初始化
+                // Global configuration initialization
                 GlobalDBType.LoadXml(this.DBTypeXml);
                 //
                 if(!string.IsNullOrEmpty(this.DBType))
                 {
                     //根据全局配置信息查找DLL
-                    var dllinfo= GlobalDBType.GetDriver(this.DBType);
+                    // Find DLL based on global configuration information
+                    var dllinfo = GlobalDBType.GetDriver(this.DBType);
                     if (dllinfo != null)
                     {
                         if (string.IsNullOrEmpty(this.DriverDLLFile))
@@ -145,8 +163,10 @@ namespace Hikari
 
         /// <summary>
         /// 关闭
+        /// 
+        /// closure
         /// </summary>
-       public  void Close()
+        public void Close()
         {
             if (isShutdown)
             {
@@ -176,7 +196,8 @@ namespace Hikari
         /// <param name="filePath"></param>
         public override void LoadConfig(string filePath)
         {
-            throw new Exception("不允许使用该方法");
+            //throw new Exception("不允许使用该方法");
+            throw new Exception("This method is not allowed");
         }
 
 
@@ -200,11 +221,13 @@ namespace Hikari
         public IDbCommand DbCommand { get { return pool.GetDbCommand(); } }
 
         public IDbDataParameter DataParameter { get { return pool.GetDataParameter(); } }
-       
+
         #endregion
 
         /// <summary>
         /// 验证SQL
+        /// 
+        /// Verify SQL
         /// </summary>
         /// <returns></returns>
         public bool CheckSQL()
@@ -224,7 +247,8 @@ namespace Hikari
                 }
                 catch(Exception ex)
                 {
-                    Logger.Singleton.Info("验证SQL有异常,异常信息:"+ex.Message);
+                    //Logger.Singleton.Info("验证SQL有异常,异常信息:"+ex.Message);
+                    Logger.Singleton.Info("Verify that the SQL is abnormal, abnormal information:" + ex.Message);
                     return false;
                 }
             }

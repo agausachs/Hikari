@@ -5,11 +5,15 @@ namespace Hikari
 {
     /// <summary>
     /// 创建代理对象
+    /// 
+    /// Create proxy object
     /// </summary>
     internal class ProxyFactory
     {
         /// <summary>
         /// 创建代理对象
+        /// 
+        /// Create proxy object
         /// </summary>
         /// <param name="poolEntry"></param>
         /// <param name="connection"></param>
@@ -23,7 +27,8 @@ namespace Hikari
             }
             catch (Exception ex)
             {
-                throw new Exception("获取失败78:" + ex.Message);
+                //throw new Exception("获取失败78:" + ex.Message);
+                throw new Exception("Get failed 78:" + ex.Message);
             }
         }
     }

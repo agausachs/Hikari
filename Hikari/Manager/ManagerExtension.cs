@@ -86,6 +86,8 @@ namespace Hikari.Manager
 
         /// <summary>
         /// 批量导入
+        /// 
+        /// Batch Import
         /// </summary>
         /// <param name="manager"></param>
         /// <param name="name"></param>

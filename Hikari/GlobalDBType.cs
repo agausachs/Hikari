@@ -109,6 +109,8 @@ namespace Hikari
 
         /// <summary>
         /// 获取dll名称信息
+        /// 
+        /// Get dll name information
         /// </summary>
         /// <param name="dbtype"></param>
         /// <returns></returns>

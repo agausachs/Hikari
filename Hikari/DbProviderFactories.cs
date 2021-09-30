@@ -70,7 +70,8 @@ namespace Hikari
                 }
                 catch(Exception ex)
                 {
-                    Logger.Singleton.Error(string.Format("{0}-程序集加载失败",path), ex);
+                    //Logger.Singleton.Error(string.Format("{0}-程序集加载失败",path), ex);
+                    Logger.Singleton.Error(string.Format("{0}-Assembly failed to load", path), ex);
                 }
                 return null;
             }
@@ -175,7 +176,8 @@ namespace Hikari
                 }
                 catch (Exception ex)
                 {
-                    Logger.Singleton.Error(string.Format("{0}-程序集加载失败", path), ex);
+                    //Logger.Singleton.Error(string.Format("{0}-程序集加载失败", path), ex);
+                    Logger.Singleton.Error(string.Format("{0}-Assembly failed to load", path), ex);
                 }
                 finally
                 {

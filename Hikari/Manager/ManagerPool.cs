@@ -18,14 +18,14 @@
 #endregion
 
 
+using Hikari.BulkCopy;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
-using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Hikari.BulkCopy;
 
 namespace Hikari.Manager
 {
@@ -37,12 +37,12 @@ namespace Hikari.Manager
     * 修改日期：2018 
     * ==============================================================================*/
 
-    public  class ManagerPool
+    public class ManagerPool
     {
         /// <summary>
         /// 单例
         /// </summary>
-        private  static ManagerPool Instance = new ManagerPool();
+        private static ManagerPool Instance = new ManagerPool();
 
 
         private readonly object lock_obj = new object();//全局锁
@@ -56,7 +56,7 @@ namespace Hikari.Manager
         private Dictionary<string, HikariDataSource> dicSource = new Dictionary<string, HikariDataSource>();
         private string cfgPath = "DBPoolCfg";//配置目录
         private const string CfgFile = "Hikari";//默认配置文件
-        private const string PreCfg= "_Hikari";//配置文件后缀
+        private const string PreCfg = "_Hikari";//配置文件后缀
         private const string CfgExtension = ".cfg";//配置文件后缀
 
         /// <summary>
@@ -76,13 +76,13 @@ namespace Hikari.Manager
         /// 默认：DBPoolCfg/DBType.xml
         /// </summary>
         public string PoolDriverXML { get; set; }
-       
+
 
         /// <summary>
         /// 同线程获取连接是否关闭前一个连接
         /// 默认：false
         /// </summary>
-        public  bool IsThreadClose { get; set; }
+        public bool IsThreadClose { get; set; }
 
         /// <summary>
         /// 统一设置驱动目录;
@@ -103,8 +103,8 @@ namespace Hikari.Manager
                 {
                     lock (lock_gobj)
                     {
-                        if(Instance==null)
-                        Instance = new ManagerPool();
+                        if (Instance == null)
+                            Instance = new ManagerPool();
                     }
                 }
                 return Instance;
@@ -129,14 +129,14 @@ namespace Hikari.Manager
             {
                 Thread.Sleep(1000000);
                 List<IDbConnection> lst = new List<IDbConnection>(100);
-                foreach(var item in dicCons)
+                foreach (var item in dicCons)
                 {
                     //遍历查找已经关闭的对象
                     HikariConnection hikari = item.Value as HikariConnection;
-                    if(hikari!=null)
+                    if (hikari != null)
                     {
-                       
-                        if(hikari.IsClosed)
+
+                        if (hikari.IsClosed)
                         {
                             //没有加锁，直接移除会导致功能受影响
                             lst.Add(item.Value);
@@ -151,11 +151,11 @@ namespace Hikari.Manager
                     int[] keys = new int[dicCons.Count];
                     dicCons.Keys.CopyTo(keys, 0);
                     IDbConnection connection = null;
-                    foreach(int key in keys)
+                    foreach (int key in keys)
                     {
-                       if( dicCons.TryGetValue(key,out  connection))
+                        if (dicCons.TryGetValue(key, out connection))
                         {
-                            if(lst.Contains(connection))
+                            if (lst.Contains(connection))
                             {
                                 dicCons.TryRemove(key, out connection);
                             }
@@ -171,34 +171,42 @@ namespace Hikari.Manager
         /// <summary>
         /// 加载连接池配置
         /// 创建数据库连接池
+        /// 
+        /// Load connection pool configuration
+        /// Create database connection pool
         /// </summary>
         /// <param name="name">配置文件名称</param>
         /// <returns></returns>
         private IDbConnection CreatePool(string name)
         {
             //只是在加载配置文件时同步；其它不同步
+            // Only synchronize when loading the configuration file; others are not synchronized
             lock (lock_obj)
             {
                 HikariDataSource hikari = null;
                 if (dicSource.TryGetValue(name, out hikari))
                 {
                     //先取一次
+                    // Take first
                     return hikari.GetConnection();
                 }
                 else
                 {
                     //配置文件
+                    // configuration file
                     string file = Path.Combine(cfgPath, name + CfgExtension);
                     if (!File.Exists(file))
                     {
-                        throw new Exception("没有配置文件" + file);
+                        //throw new Exception("没有配置文件" + file);
+                        throw new Exception("No configuration file" + file);
                     }
                     HikariConfig hikariConfig = new HikariConfig();
-                    hikariConfig.DriverDir = null;//不再使用原来的默认
+                    hikariConfig.DriverDir = null;//不再使用原来的默认 // No longer use the original default
                     hikariConfig.LoadConfig(file);
-                    if(string.IsNullOrEmpty(hikariConfig.DriverDir))
+                    if (string.IsNullOrEmpty(hikariConfig.DriverDir))
                     {
-                       //说明没有在文件中配置
+                        //说明没有在文件中配置
+                        // Description is not configured in the file
                         hikariConfig.DriverDir = this.DirverDir;
                     }
                     hikariConfig.DBTypeXml = this.PoolDriverXML;
@@ -212,6 +220,9 @@ namespace Hikari.Manager
         /// <summary>
         /// 获取同线程已经获取的线程
         /// 没有在相同线程中使用则不会
+        /// 
+        /// Get the thread already acquired by the same thread
+        /// It will not be used if it is not used in the same thread
         /// </summary>
         /// <returns></returns>
         public bool GetThreadDbConnection(out IDbConnection connection)
@@ -224,8 +235,11 @@ namespace Hikari.Manager
         /// 获取连接
         /// 例如：配置文件MySql_Hikari.cfg，name=MySql
         /// 
+        /// Get connection
+        /// For example: configuration file MySql_Hikari.cfg, name=MySql
+        /// 
         /// </summary>
-        /// <param name="name">配置文件名称，区分大小写</param>
+        /// <param name="name">Configuration file name, case sensitive</param>
         /// <returns></returns>
         public IDbConnection GetDbConnection(string name = null)
         {
@@ -250,9 +264,10 @@ namespace Hikari.Manager
                         connection.Close();
                     }
                 }
-                if(con==null)
+                if (con == null)
                 {
-                    throw new Exception("连接为NULL，获取失败");
+                    //throw new Exception("连接为NULL，获取失败");
+                    throw new Exception("Connection is NULL, get failed");
                 }
                 dicCons[threadid] = con;
                 return con;
@@ -262,7 +277,8 @@ namespace Hikari.Manager
                 IDbConnection con = CreatePool(name);
                 if (con == null)
                 {
-                    throw new Exception("连接为NULL，获取失败");
+                    //throw new Exception("连接为NULL，获取失败");
+                    throw new Exception("Connection is NULL, get failed");
                 }
                 dicCons[threadid] = con;
                 return con;
@@ -274,7 +290,7 @@ namespace Hikari.Manager
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        internal HikariDataSource GetHikariDataSource(string name=null)
+        internal HikariDataSource GetHikariDataSource(string name = null)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -306,7 +322,7 @@ namespace Hikari.Manager
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public IDbDataAdapter CreateDataAdapter(string name=null)
+        public IDbDataAdapter CreateDataAdapter(string name = null)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -335,7 +351,7 @@ namespace Hikari.Manager
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public IDbCommand CreateDbCommand(string name=null)
+        public IDbCommand CreateDbCommand(string name = null)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -369,7 +385,7 @@ namespace Hikari.Manager
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public IDbDataParameter CreateDataParameter(string name=null)
+        public IDbDataParameter CreateDataParameter(string name = null)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -400,34 +416,35 @@ namespace Hikari.Manager
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public IBulkCopy GetBulkCopy(string name=null)
+        public IBulkCopy GetBulkCopy(string name = null)
         {
             using (var con = GetDbConnection(name))
             {
                 HikariDataSource hikari = null;
-                if(dicSource.TryGetValue(name,out hikari))
+                if (dicSource.TryGetValue(name, out hikari))
                 {
-                   return hikari.GetBulkCopy();
+                    return hikari.GetBulkCopy();
                 }
             }
             return null;
         }
-      
+
 
         /// <summary>
         /// 用初始化SQL验证连接
         /// </summary>
         public void CheckSql()
         {
-            foreach(var kv in dicSource)
+            foreach (var kv in dicSource)
             {
-                if(!kv.Value.CheckSQL())
+                if (!kv.Value.CheckSQL())
                 {
-                    Logger.Singleton.Info(kv.Key + "验证SQL有异常");
+                    //Logger.Singleton.Info(kv.Key + "验证SQL有异常");
+                    Logger.Singleton.Info(kv.Key + "Verify that the SQL is abnormal");
                 }
             }
         }
-        
+
         /// <summary>
         /// 清理连接池
         /// </summary>

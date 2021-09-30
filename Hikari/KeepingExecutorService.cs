@@ -1,5 +1,4 @@
-﻿using log4net.Core;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
 /**
@@ -21,28 +20,35 @@ namespace Hikari
     /// </summary>
     public class KeepingExecutorService
     {
-       
+
         private ConcurrentQueue<PoolEntry> idleTimeQueue;
         private ConcurrentQueue<PoolEntry> maxLiveQueue;
         private ConcurrentQueue<PoolEntry> userQueue;
 
         /// <summary>
         /// tick与毫秒的转化值
+        /// Conversion value of tick and milliseconds
         /// </summary>
         private const int TickMS = 10000;
 
         /// <summary>
         /// 空闲时间
+        /// 
+        /// free time
         /// </summary>
         private int idleTimeOut = 0;
 
-       /// <summary>
-       /// 最大生命周期
-       /// </summary>
+        /// <summary>
+        /// 最大生命周期
+        /// 
+        /// Maximum life cycle
+        /// </summary>
         private int maxLeftTime = 0;
 
         /// <summary>
         /// 离开时间
+        /// 
+        /// departure time
         /// </summary>
         private int leakDetectionThreshold = 0;
 
@@ -53,15 +59,15 @@ namespace Hikari
         /// <summary>
         /// 构造方法
         /// </summary>
-        /// <param name="idleTime">空闲</param>
-        /// <param name="maxLeft">最大存活</param>
-        /// <param name="usetime">使用时间</param>
-        public KeepingExecutorService(long idleTime,long maxLeft,long usetime)
+        /// <param name="idleTime">idle</param>
+        /// <param name="maxLeft">Maximum survival</param>
+        /// <param name="usetime">usage time</param>
+        public KeepingExecutorService(long idleTime, long maxLeft, long usetime)
         {
-            this.idleTimeOut =(int) idleTime;
-            this.maxLeftTime =(int) maxLeft;
-            this.leakDetectionThreshold =(int) usetime;
-         
+            this.idleTimeOut = (int)idleTime;
+            this.maxLeftTime = (int)maxLeft;
+            this.leakDetectionThreshold = (int)usetime;
+
             this.idleTimeQueue = new ConcurrentQueue<PoolEntry>();
             this.maxLiveQueue = new ConcurrentQueue<PoolEntry>();
             this.userQueue = new ConcurrentQueue<PoolEntry>();
@@ -70,6 +76,8 @@ namespace Hikari
 
         /// <summary>
         /// 监测空闲的连接
+        /// 
+        /// Monitor idle connections
         /// </summary>
         /// <param name="poolEntry"></param>
         public void ScheduleIdleTimeout(PoolEntry poolEntry)
@@ -79,6 +87,8 @@ namespace Hikari
 
         /// <summary>
         /// 监视连接最大存活
+        /// 
+        /// Monitor the maximum survival of the connection
         /// </summary>
         /// <param name="poolEntry"></param>
         public void ScheduleMaxLive(PoolEntry poolEntry)
@@ -88,6 +98,8 @@ namespace Hikari
 
         /// <summary>
         /// 监视连接离开的池的对象
+        /// 
+        /// Monitor the object of the pool where the connection leaves
         /// </summary>
         /// <param name="poolEntry"></param>
         public void ScheduleUse(PoolEntry poolEntry)
@@ -97,6 +109,8 @@ namespace Hikari
 
         /// <summary>
         /// 开启监视
+        /// 
+        /// Turn on monitoring
         /// </summary>
         private void Start()
         {
@@ -113,6 +127,7 @@ namespace Hikari
                         if (idleTimeQueue.TryDequeue(out poolEntry))
                         {
                             //超过空闲时间就不需要，标记移除
+                            // No need for more than idle time, mark removed
                             if ((now - poolEntry.AccessedTime) / TickMS > idleTimeOut)
                             {
                                 poolEntry.CompareAndSetState(IConcurrentBagEntry.STATE_NOT_IN_USE, IConcurrentBagEntry.STATE_REMOVED);
@@ -121,6 +136,7 @@ namespace Hikari
                             if (poolEntry.State != IConcurrentBagEntry.STATE_REMOVED)
                             {
                                 //已经标记移除的不再监测
+                                // The ones that have been marked for removal will no longer be monitored
                                 idleTimeQueue.Enqueue(poolEntry);
                             }
                         }
@@ -151,9 +167,10 @@ namespace Hikari
                             if (poolEntry.State != IConcurrentBagEntry.STATE_REMOVED)
                             {
                                 //已经标记移除的不再监测
+                                // The ones that have been marked for removal will no longer be monitored
                                 maxLiveQueue.Enqueue(poolEntry);
                             }
-                           
+
                         }
                     }
                 }
@@ -165,15 +182,15 @@ namespace Hikari
             Thread leakDetection = new Thread(() =>
             {
                 PoolEntry poolEntry = null;
-                int cout = 10;//延迟10s没有设置就退出；
+                int cout = 10;//延迟10s没有设置就退出； // Exit without setting a delay of 10s;
                 while (!IsStop)
                 {
                     Thread.Sleep(leakDetectionThreshold);
-                    if(leakDetectionThreshold==0)
+                    if (leakDetectionThreshold == 0)
                     {
-                        Thread.Sleep(1000);//延迟1s;
+                        Thread.Sleep(1000);//延迟1s; // Delay 1s;
                         cout--;
-                        if(cout==0)
+                        if (cout == 0)
                         {
                             break;
                         }
@@ -189,13 +206,14 @@ namespace Hikari
                             {
                                 if ((now - poolEntry.AccessedTime) / TickMS > leakDetectionThreshold)
                                 {
-                                    Logger.Singleton.Warn(string.Format("{0}-可能泄露,实体:{1}",PoolName,poolEntry.ID));
+                                    Logger.Singleton.Warn(string.Format("{0}-可能泄露,实体:{1}", PoolName, poolEntry.ID));
                                 }
                             }
                             num--;
                             if (poolEntry.State == IConcurrentBagEntry.STATE_IN_USE)
                             {
                                 //没有使用的不再监测
+                                // No longer monitor the unused
                                 userQueue.Enqueue(poolEntry);
                             }
                         }
@@ -209,15 +227,17 @@ namespace Hikari
 
         /// <summary>
         /// 清除所有监测对象
+        /// 
+        /// Clear all monitoring objects
         /// </summary>
         public void Clear()
         {
 
             PoolEntry poolEntry = null;
-            while(true)
+            while (true)
             {
                 userQueue.TryDequeue(out poolEntry);
-                if(userQueue.IsEmpty||poolEntry==null)
+                if (userQueue.IsEmpty || poolEntry == null)
                 {
                     break;
                 }
@@ -225,7 +245,7 @@ namespace Hikari
             //
             while (true)
             {
-               
+
                 maxLiveQueue.TryDequeue(out poolEntry);
                 if (maxLiveQueue.IsEmpty || poolEntry == null)
                 {
@@ -236,7 +256,7 @@ namespace Hikari
             //
             while (true)
             {
-               
+
                 idleTimeQueue.TryDequeue(out poolEntry);
                 if (idleTimeQueue.IsEmpty || poolEntry == null)
                 {
@@ -244,10 +264,12 @@ namespace Hikari
                 }
             }
         }
-       
-        
+
+
         /// <summary>
         /// 关闭清除
+        /// 
+        /// Close clear
         /// </summary>
         public void Stop()
         {

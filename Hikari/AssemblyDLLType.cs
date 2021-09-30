@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 /**
 * 命名空间: Hikari 
@@ -23,8 +21,10 @@ namespace Hikari
     {
         /// <summary>
         /// 连接类型
+        /// 
+        /// Connection Type
         /// </summary>
-          public Type ConnectType { get; set; }
+        public Type ConnectType { get; set; }
 
         /// <summary>
         ///
@@ -34,12 +34,12 @@ namespace Hikari
         /// <summary>
         /// 
         /// </summary>
-          public Type DataAdapterType { get; set; }
-         
+        public Type DataAdapterType { get; set; }
+
         /// <summary>
         /// 
         /// </summary>
-          public Type ParameterType { get; set; }
+        public Type ParameterType { get; set; }
 
     }
 }

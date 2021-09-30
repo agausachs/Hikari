@@ -30,6 +30,8 @@ namespace Hikari
 
         /// <summary>
         /// 底层驱动类对象
+        /// 
+        /// The underlying driver class object 
         /// </summary>
         public IDbConnection DbConnection { get { return delegateCon; } }
     }

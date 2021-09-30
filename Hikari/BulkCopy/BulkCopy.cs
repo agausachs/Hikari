@@ -60,7 +60,8 @@ namespace Hikari.BulkCopy
                     }
                     else
                     {
-                        throw new BulkCopyException("驱动不支持该功能");
+                        //throw new BulkCopyException("驱动不支持该功能");
+                        throw new BulkCopyException("Driver does not support this function");
                     }
                 }
                 else if (BulkCls.Name.StartsWith("MySqlBulk"))
@@ -118,11 +119,13 @@ namespace Hikari.BulkCopy
             if (method != null)
             {
                 //只调用一次不创建委托
+                // Only call once without creating a delegate
                 method.Invoke(bulk, new object[] { dt });
             }
             else
             {
-                throw new BulkCopyException("驱动不支持该功能或者查找Bulk类错误");
+                //throw new BulkCopyException("驱动不支持该功能或者查找Bulk类错误");
+                throw new BulkCopyException("The driver does not support this function or find Bulk errors");
             }
         }
 
@@ -193,7 +196,8 @@ namespace Hikari.BulkCopy
             var method = BulkCls.GetMethod("Load"); 
             if(method==null)
             {
-                throw new BulkCopyException("该驱动不支持或者查找Bulk类错误");
+                //throw new BulkCopyException("该驱动不支持或者查找Bulk类错误");
+                throw new BulkCopyException("The driver does not support or find Bulk errors");
             }
            //另外还可以设置超时
             if (FieldTerminator != null)

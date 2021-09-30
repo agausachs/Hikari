@@ -9,6 +9,8 @@ namespace Hikari
 
     /// <summary>
     /// 创建驱动连接
+    /// 
+    /// Create driver connection
     /// </summary>
     public abstract class PoolBase
     {
@@ -18,12 +20,14 @@ namespace Hikari
         protected string poolName;
         protected long connectionTimeout;
         protected int validationTimeout;
-        protected string dllPath = "";//dll路径
-        protected  int size = 0;//生成的连接数量
-        protected int entryid = 0;//ID生成
+        protected string dllPath = ""; //dll路径 // dll path
+        protected  int size = 0; //生成的连接数量 // Number of connections generated
+        protected int entryid = 0; //ID生成 // ID generation
 
         /// <summary>
         /// 已经创建的数据
+        /// 
+        /// Data that has been created
         /// </summary>
         public int Size { get { return size; } }
 
@@ -34,11 +38,12 @@ namespace Hikari
             this.connectionTimeout = config.ConnectionTimeout;
             this.validationTimeout =(int) config.ValidationTimeout;
         }
-       
+
 
         /// <summary>
         /// 创建池中数据对象
         /// 
+        /// Create a data object in the pool
         /// </summary>
         /// <returns></returns>
         protected PoolEntry NewPoolEntry()
@@ -47,6 +52,7 @@ namespace Hikari
             if (poolEntry.IsValidate)
             {
                 //创建无效
+                // create invalid
                 poolEntry = null;
             }
             if(poolEntry!=null)
@@ -61,6 +67,8 @@ namespace Hikari
         /// 关闭驱动连接
         /// 按照设计，只有连接池能够操作驱动连接
         /// 
+        /// Close the drive connection
+        /// According to the design, only the connection pool can operate the driver connection
         /// </summary>
         /// <param name="connection"></param>
         protected void CloseConnection(IDbConnection connection)
@@ -75,6 +83,8 @@ namespace Hikari
 
         /// <summary>
         /// 创建驱动的连接
+        /// 
+        /// Create a driver connection
         /// </summary>
         /// <returns></returns>
         private IDbConnection NewConnection()
@@ -122,10 +132,12 @@ namespace Hikari
            
         }
 
-       /// <summary>
-       /// 测试连接及设置
-       /// </summary>
-       /// <param name="connection"></param>
+        /// <summary>
+        /// 测试连接及设置
+        /// 
+        /// Test connection and settings
+        /// </summary>
+        /// <param name="connection"></param>
         private void SetupConnection(IDbConnection connection)
         {
             try
@@ -141,6 +153,8 @@ namespace Hikari
 
         /// <summary>
         /// 连接验证
+        /// 
+        /// Connection verification
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="sql"></param>
@@ -162,7 +176,8 @@ namespace Hikari
             if(!task.Wait((int)config.ConnectionTimeout))
             {
                 HealthCheckRegistry.Singleton.Add(poolName, this);
-                Logger.Singleton.Warn("数据库连接异常，连接池：" + poolName);
+                //Logger.Singleton.Warn("数据库连接异常，连接池：" + poolName);
+                Logger.Singleton.Warn("Abnormal database connection, connection pool：" + poolName);
                 return;
             }
          
@@ -171,7 +186,8 @@ namespace Hikari
                 return;
             }
             var cts = new CancellationTokenSource(validationTimeout);
-            var cancell = cts.Token.Register(() => Logger.Singleton.Warn("当前连接执行测试超时,数据库异常，SQL:" + sql));
+            //var cancell = cts.Token.Register(() => Logger.Singleton.Warn("当前连接执行测试超时,数据库异常，SQL:" + sql));
+            var cancell = cts.Token.Register(() => Logger.Singleton.Warn("The current connection execution test timed out, the database is abnormal, SQL:" + sql));
             var result = Task.Factory.StartNew(() =>
              {
                  try
@@ -186,7 +202,8 @@ namespace Hikari
                      connection.Close();
                      connection.Dispose();
                      connection = null;
-                     Logger.Singleton.Error("执行验证SQL失败,连接关闭!原因："+ex.Message);
+                     //Logger.Singleton.Error("执行验证SQL失败,连接关闭!原因："+ex.Message);
+                     Logger.Singleton.Error("The execution of the verification SQL failed and the connection was closed! Reason:" + ex.Message);
                  }
 
              }, cts.Token
@@ -203,7 +220,7 @@ namespace Hikari
         }
 
 
-        #region 数据库主要对象
+        #region 数据库主要对象 The main object of the database
         public IDbCommand  GetDbCommand()
         {
             return DbProviderFactories.GetDbCommand(dllPath);
